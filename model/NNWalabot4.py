@@ -163,8 +163,11 @@ class modelX():
     # last layer without relu!!!!
     self._dnn3 = dnn(self.dnn2,self.w3,self.b3)
     # dnn3_1 silhouette & dnn3_2 distance
-    self._dnn3_1 = sigmoid(self._dnn3[:,:-1])
-    self._dnn3_2 = self._dnn3[:,-1]
+    self._dnn3_1 = sigmoid(self._dnn3[:,:1024])
+    self._dnn3_2 = tf.reshape(self._dnn3[:,1024],[-1,1])
+    #print self._dnn3_1.get_shape()
+    #print self._dnn3_2.get_shape()
+    #raw_input()
     self.dnn3 = tf.concat(1,[self._dnn3_1,self._dnn3_2])
     #self.softmax = softmax(self.dnn2)
 
@@ -187,14 +190,15 @@ class modelX():
     #f = tf.train.GradientDescentOptimizer(lr).minimize(cross_entropy)
     #f = tf.train.MomentumOptimizer(lr,0.9).minimize(cross_entropy)
     #f = tf.train.RMSPropOptimizer(lr,0.9,0.9,1e-5).minimize(cross_entropy)
-    f = tf.train.RMSPropOptimizer(lr).minimize(cross_entropy)
+    #f = tf.train.RMSPropOptimizer(lr).minimize(cross_entropy)
+    f = tf.train.AdamOptimizer(lr).minimize(cross_entropy)
 
     # outcome
     #pred = tf.equal(tf.argmax(self.softmax,1),tf.argmax(self.y_hat,1))
     pred = tf.equal( tf.cast(tf.less(self._dnn3_1,0.5),tf.float32),
-                     tf.cast(tf.less(self.y_hat[:,:-1],0.5),tf.float32) )
+                     tf.cast(tf.less(self.y_hat[:,:1024],0.5),tf.float32) )
     acc = tf.reduce_mean(tf.cast(pred,tf.float32))
-    err = tf.reduce_mean(tf.sub(self._dnn3_2,self.y_hat[:,-1]))
+    err = tf.reduce_mean(tf.abs(tf.sub(self._dnn3_2,self.y_hat[:,1024])))
 
     # initialize session & saver
     if verbose: _log(1,e,'echo ini var and saver start>> tmp')
@@ -283,7 +287,7 @@ class modelX():
             self.X1_loss_history += [loss1]
             self.X_acc_history += [accuracy]
             self.X1_acc_history += [accuracy1]
-            self.X_err_history += [errpr]
+            self.X_err_history += [error]
             self.X1_err_history += [error1]
             # save best record
             if accuracy1 >= good_record and error1 < low_err:
@@ -329,7 +333,8 @@ def test():
 
 
   net = modelX()
-  net.loss(X,y,X1,y1,e,mode='train',lr=1e-6,reg=1e-1,batch=10,epoch=100)
+  net.loss(X,y,X1,y1,e,mode='train',lr=1e-2,reg=0.0,batch=10,epoch=100)
+  #net.loss(X,y,X1,y1,e,mode='train',lr=1e-1,reg=1e-2,batch=10,epoch=100)
 
   print max(net.X1_acc_history)
   print min(net.X1_loss_history)
