@@ -14,13 +14,15 @@ def dot(sess,x,w):
 
 
 if __name__=='__main__':
-    x = tf.placeholder(tf.float32,[None,None])
-    y = tf.placeholder(tf.float32,[None,None])
+    x = tf.placeholder(tf.float32,[None,3])
+    y = tf.placeholder(tf.float32,[None,3])
     sess = tf.Session()
 
     w_value = np.array([1,0,0]).reshape((3,1))
     w = tf.Variable(w_value,dtype=tf.float32)
     z = dot(sess,x,w)
+    z1 = z[:,0]
+    z2 = z[:,0]
 
     data = np.array([1.0,-1,0.0,2.0,1.0,0.3]).reshape(2,3)
     label = np.array([0,0,1,0,0,1]).reshape(2,3)
@@ -29,15 +31,5 @@ if __name__=='__main__':
 
     sess.run(init)
 
-    o1 = sess.run([z],feed_dict={x:data})
-    print 'z',o1
-    o1 = sess.run([w],feed_dict={x:data})
-    print 'w',o1
-
-    #sess.run(w.assign(w*0.5))
-
-    o1 = sess.run([z],feed_dict={x:data})
-    print 'z',o1
-    o1 = sess.run([w],feed_dict={x:data})
-    print 'w',o1
-
+    o1,o2 = sess.run([z1,z2],feed_dict={x:data})
+    print 'z',o1,o2
