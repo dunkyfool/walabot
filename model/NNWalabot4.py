@@ -129,8 +129,8 @@ class modelX():
     self.bnv6 = beta([2048])
 
     # FC-3
-    self.w3 = weight([2048,1024])
-    self.b3 = bias([1024])
+    self.w3 = weight([2048,1025])
+    self.b3 = bias([1025])
     self.conv_para = {'stride':1,
                      'pad':'SAME'}
     self.conv_para2 = {'stride':2,
@@ -161,7 +161,11 @@ class modelX():
     self.dnn1 = dnn_relu_bn(self.cnn4_output,self.w1,self.b1,self.bng5,self.bnb5,self.bnm5,self.bnv5)
     self.dnn2 = dnn_relu_bn(self.dnn1,self.w2,self.b2,self.bng6,self.bnb6,self.bnm6,self.bnv6)
     # last layer without relu!!!!
-    self.dnn3 = dnn_sigmoid(self.dnn2,self.w3,self.b3)
+    self._dnn3 = dnn(self.dnn2,self.w3,self.b3)
+    # dnn3_1 silhouette & dnn3_2 distance
+    self._dnn3_1 = sigmoid(self._dnn3[:,:-1])
+    self._dnn3_2 = self._dnn3[:,-1]
+    self.dnn3 = tf.concat(1,[self._dnn3_1,self._dnn3_2])
     #self.softmax = softmax(self.dnn2)
 
   def loss(self,X,y,X1,y1,e,mode='test',lr=2e-4,reg=1e-5,batch=5,epoch=21,opt=True,verbose=True):
@@ -170,6 +174,8 @@ class modelX():
     self.X1_loss_history = []
     self.X_acc_history = []
     self.X1_acc_history = []
+    self.X_err_history = []
+    self.X1_err_history = []
 
     # loss function
     #cross_entropy = -tf.reduce_sum(self.y_hat*tf.log(self.softmax))
@@ -185,8 +191,10 @@ class modelX():
 
     # outcome
     #pred = tf.equal(tf.argmax(self.softmax,1),tf.argmax(self.y_hat,1))
-    pred = tf.equal( tf.cast(tf.less(self.dnn3,0.5),tf.float32), tf.cast(tf.less(self.y_hat,0.5),tf.float32) )
+    pred = tf.equal( tf.cast(tf.less(self._dnn3_1,0.5),tf.float32),
+                     tf.cast(tf.less(self.y_hat[:,:-1],0.5),tf.float32) )
     acc = tf.reduce_mean(tf.cast(pred,tf.float32))
+    err = tf.reduce_mean(tf.sub(self._dnn3_2,self.y_hat[:,-1]))
 
     # initialize session & saver
     if verbose: _log(1,e,'echo ini var and saver start>> tmp')
@@ -206,19 +214,23 @@ class modelX():
       if opt:
         good_record = 0.0
         low_loss = np.inf
+        low_err = np.inf
       else:
         if verbose:_log(1,e,'echo load para start>> tmp')
         saver.restore(sess, "model.ckpt")
         X1_loss = 0
         X1_acc = 0
+        X1_err = 0
         for X1_idx in range(X1.shape[0]):
-          _loss,_accuracy = sess.run([cross_entropy,acc],
+          _loss,_accuracy,_error = sess.run([cross_entropy,acc,err],
                                       feed_dict={self.x:X1[X1_idx:X1_idx+1],
                                                  self.y_hat:y1[X1_idx:X1_idx+1]})
           X1_loss += _loss
           X1_acc += _accuracy
-          low_loss = X1_loss
-          good_record = X1_acc/X1.shape[0]
+          X1_err += _error
+        low_loss = X1_loss
+        good_record = X1_acc/X1.shape[0]
+        low_err = X1_err/X1.shape[0]
         if verbose:_log(0,e,'echo load para end>> tmp')
 
       num = X.shape[0]
@@ -237,45 +249,54 @@ class modelX():
             if verbose:_log(1,e,'echo check all train data start>> tmp')
             X_loss = 0
             X_acc = 0
+            X_err = 0
             for X_idx in range(X.shape[0]):
-              _loss,_accuracy = sess.run([cross_entropy,acc],
+              _loss,_accuracy,_error = sess.run([cross_entropy,acc,err],
                                           feed_dict={self.x:X[X_idx:X_idx+1],
                                                      self.y_hat:y[X_idx:X_idx+1]})
               X_loss += _loss
               X_acc += _accuracy
+              X_err +=_error
             if verbose:_log(0,e,'echo check all train data end>> tmp')
 
             X1_loss = 0
             X1_acc = 0
+            X1_err = 0
             if verbose:_log(1,e,'echo check all val data start>> tmp')
             for X1_idx in range(X1.shape[0]):
-              _loss1,_accuracy1 = sess.run([cross_entropy,acc],
+              _loss1,_accuracy1,_error1 = sess.run([cross_entropy,acc,err],
                                             feed_dict={self.x:X1[X1_idx:X1_idx+1],
                                                        self.y_hat:y1[X1_idx:X1_idx+1]})
               X1_loss += _loss1
               X1_acc += _accuracy1
+              X1_err += _error1
             if verbose:_log(0,e,'echo check all val data end>> tmp')
 
             loss = X_loss
             loss1 = X1_loss
             accuracy = X_acc/X.shape[0]
             accuracy1 = X1_acc/X1.shape[0]
+            error = X_err/X.shape[0]
+            error1 = X1_err/X1.shape[0]
 
             self.X_loss_history += [loss]
             self.X1_loss_history += [loss1]
             self.X_acc_history += [accuracy]
             self.X1_acc_history += [accuracy1]
+            self.X_err_history += [errpr]
+            self.X1_err_history += [error1]
             # save best record
-            if accuracy1 >= good_record:# and loss1 < low_loss:
+            if accuracy1 >= good_record and error1 < low_err:
               good_record = accuracy1
               low_loss = loss1
+              low_err = error1
               if verbose:_log(1,e,'echo save para start>> tmp')
               save_path = saver.save(sess, "model.ckpt",write_meta_graph=False)
               if verbose:_log(0,e,'echo save para end>> tmp')
               print("######## Model saved in file: %s ########" % save_path)
             print("epoch %2d/%2d,\titer %2d/%2d," %(i,epoch,j,num/batch))
-            print("Train Loss %.10f Train Accuracy %.10f" %(loss,accuracy))
-            print("Valid Loss %.10f Valid Accuracy %.10f" %(loss1,accuracy1))
+            print("Train Loss %.10f Accuracy %.10f Error %.10f" %(loss,accuracy,error))
+            print("Valid Loss %.10f Accuracy %.10f Error %.10f" %(loss1,accuracy1,error1))
 
       # Force to save the last parameters
       save_path = last_saver.save(sess, "last_model.ckpt",write_meta_graph=False)
@@ -286,10 +307,10 @@ class modelX():
     elif mode=='test':
       saver.restore(sess, "last_model.ckpt")
       print("Model restored.")
-      loss,accuracy,org_output = sess.run([cross_entropy,acc,self.dnn3],feed_dict={self.x:X1,self.y_hat:y1})
-      print("Vali Loss %.10f Vali Accuracy %.10f" %(loss,accuracy))
-      loss1,accuracy1,org_output1 = sess.run([cross_entropy,acc,self.dnn3],feed_dict={self.x:X,self.y_hat:y})
-      print("Test Loss %.10f Test Accuracy %.10f" %(loss1,accuracy1))
+      loss,accuracy,error,org_output = sess.run([cross_entropy,acc,err,self.dnn3],feed_dict={self.x:X1,self.y_hat:y1})
+      print("Vali Loss %.10f Accuracy %.10f Error %.10f" %(loss,accuracy,error))
+      loss1,accuracy1,error1,org_output1 = sess.run([cross_entropy,acc,err,self.dnn3],feed_dict={self.x:X,self.y_hat:y})
+      print("Test Loss %.10f Accuracy %.10f Error %.10f" %(loss1,accuracy1,error1))
       return org_output, org_output1
 
     #sess.close()
@@ -304,7 +325,7 @@ def test():
   X = np.random.normal(0,1,(10,1,2048,40))
   y = np.random.randint(2,size=(10,1025)).astype(np.int32)
   X1 = np.random.normal(0,1,(10,1,2048,40))
-  y1 = np.random.randint(2,size=(10,1024)).astype(np.int32)
+  y1 = np.random.randint(2,size=(10,1025)).astype(np.int32)
 
 
   net = modelX()
@@ -312,6 +333,7 @@ def test():
 
   print max(net.X1_acc_history)
   print min(net.X1_loss_history)
+  print min(net.X1_err_history)
 
 if __name__=='__main__':
   #test()
