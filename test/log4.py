@@ -6,6 +6,22 @@ import pandas as pd
 import os
 from os import listdir, system
 from os.path import isfile, join, isdir
+import sys,select
+
+def timeout(string):
+  print 'Skip in FIVE seconds',string
+  i,o,e = select.select([sys.stdin],[],[],5)
+  if i:
+    return sys.stdin.readline().strip()
+
+def init():
+  with h5py.File('data/tri_walabot.h5','w') as hf:
+      hf.create_dataset('trainLabel',(0,0),compression='gzip',maxshape=(None,None))
+      hf.create_dataset('valLabel',(0,0),compression='gzip',maxshape=(None,None))
+      hf.create_dataset('testLabel',(0,0),compression='gzip',maxshape=(None,None))
+      hf.create_dataset('trainData',(0,0,0,0),compression='gzip',maxshape=(None,None,None,None))
+      hf.create_dataset('valData',(0,0,0,0),compression='gzip',maxshape=(None,None,None,None))
+      hf.create_dataset('testData',(0,0,0,0),compression='gzip',maxshape=(None,None,None,None))
 
 def imgProcess(tmp_img,bk_img,thr,cls,x,y,z,ver,opt=False):
     pass
@@ -106,9 +122,7 @@ def findThres(path):
   record = np.array(record)
   print record, record.shape
 
-  _ = raw_input('Overwrite[Y/n]: ')
-  if _ == 'y' or _ == 'Y': os.system('rm data/thre.h5')
-
+  print 'Clear old threshold...'
   with h5py.File('data/thre.h5', 'w') as hf:
       hf.create_dataset('threshold',data=record,compression='gzip')
 
@@ -152,7 +166,7 @@ def convert_img2label():
   ###########################
   # Initialize HDF5 dataset #
   ###########################
-  _ = raw_input('Overwrite[y/N]: ')
+  _ = timeout('Overwrite[y/N]: ')
   if _ == 'y' or _ == 'Y':
     with h5py.File('data/tri_walabot.h5', 'w') as hf:
       hf.create_dataset('trainLabel',(0,0),compression='gzip',maxshape=(None,None))
@@ -226,7 +240,7 @@ def convert_log2data():
   ###########################
   # Initialize HDF5 dataset #
   ###########################
-  _ = raw_input('Overwrite[y/N]: ')
+  _ = timeout('Overwrite[y/N]: ')
   if _ == 'y' or _ == 'Y':
     with h5py.File('data/tri_walabot.h5', 'w') as hf:
       hf.create_dataset('trainData',(0,0,0,0),compression='gzip',maxshape=(None,None,None,None))
@@ -279,6 +293,7 @@ def convert_log2data():
         #  print a[0:40].max();print a[40:80].max();print a.shape
 
     del data,trainData,valData
+
   _check_log2data()
 
 def _check_log2data():
@@ -320,6 +335,8 @@ def load():
 
 if __name__=='__main__':
   pass
+  if not isfile('data/tri_walabot.h5'):
+    init()
   findThres('data')
   #convert_img2label()
   #convert_log2data()
