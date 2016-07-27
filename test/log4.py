@@ -25,7 +25,10 @@ def imgProcess(tmp_img,bk_img,thr,cls,x,y,z,ver,opt=False):
     res_img = res_img.reshape(128*128)
 
     if not opt: # build label
-        app_img = np.append(res_img,[cls,x,y,z,ver]) # append other info
+        #print res_img.shape
+        #print cls.shape
+        app_img = np.append(res_img,cls) # append other info
+        app_img = np.append(app_img,[x,y,z,ver])
         return app_img.reshape(1,128*128+cls.shape[0]+3+1)
 
     else:
@@ -128,7 +131,7 @@ def convert_img2label():
   ############
   # Variable #
   ############
-  paths = sorted([join('data/',f) for f in listdir(path) if isdir(join('data',f))])
+  paths = sorted([join('data',f) for f in listdir('data') if isdir(join('data',f))])
 
   # remove redundent folder(s)
   paths.remove('data/a__name')
@@ -137,14 +140,14 @@ def convert_img2label():
 
   # load fine-tunning threshold
   with h5py.File('data/thre.h5','r') as hf:
-    thres = np.array(h5['threshold'])
+    thres = np.array(hf['threshold'])
   clsList = []
 
   # search class num & build matrix
   for d in paths:
     name, x, y, z, ver = d.split('/')[-1].split('_')
     if name not in clsList: clsList += [name]
-  cls = np.eye(len(clsList))
+  cls = np.eye(len(clsList)).astype(int)
 
   ###########################
   # Initialize HDF5 dataset #
@@ -169,8 +172,8 @@ def convert_img2label():
 
     for pic in filename:
       labels += [imgProcess(cv2.imread(join(path,pic),0),
-                            cv2.imread('data/background',0),thres[idx],
-                            cls[clsList.index(name)],x,y,z,int(ver[1:]))]
+                            cv2.imread('data/background.jpg',0),thres[idx],
+                            cls[clsList.index(name)],int(x),int(y),int(z),int(ver[1:]))]
 
     labels = np.array(labels).reshape((-1,128*128+len(clsList)+3+1))
 
@@ -188,12 +191,31 @@ def convert_img2label():
       hf['trainLabel'].resize((trainShape))
       hf['valLabel'].resize((valShape))
 
-      hf['trainLabel'][trainCurrSize:trainCurrSize+trainNum] = labels[0:trainNum]
+      #print hf['trainLabel'][trainCurrSize:trainCurrSize+trainNum].shape
+      #print labels[0:trainNum].shape
+      #raw_input('PAUSE')
+
+      #print cls[0].shape
+      #print labels
+      #print labels[0,128*128:128*128+4]
+      #print type(labels[0,0]),type(labels[0,128*128]),type(labels[0,128*128+1]),type(labels[0,128*128+3]),type(labels[0,128*128+4])
+      #raw_input('PAUSE')
+
+      hf['trainLabel'][trainCurrSize:trainCurrSize+trainNum,:] = labels[0:trainNum]
       hf['valLabel'][valCurrSize:valCurrSize+valNum] = labels[trainNum:]
 
     del labels
 
   print time.time()-start
+
+  _check_img2label() # verify
+
+def _check_img2label():
+  v = None
+  with h5py.File('data/tri_walabot.h5','r') as hf:
+    v = np.array(hf['valLabel'])
+  for i in range(v.shape[0]):
+    print v[i,0],v[i,128*128:]
 
 def convert_log2data():
   ############
@@ -225,8 +247,8 @@ def convert_log2data():
         trainNum = int(data.shape[0]*0.9)
         valNum = data.shape[0] - trainNum
 
-        trainShape = (trainCurrSize + trainNum, data.shape[1],data.shape[2],data.shape[3])
-        valShape = (valCurrSize + valNum, data.shape[1],data.shape[2],data.shape[3])
+        trainShape = (trainCurrSize + trainNum,1,2048,40)
+        valShape = (valCurrSize + valNum,1,2048,40)
 
         hf['trainData'].resize((trainShape))
         hf['valData'].resize((valShape))
@@ -257,6 +279,15 @@ def convert_log2data():
         #  print a[0:40].max();print a[40:80].max();print a.shape
 
     del data,trainData,valData
+  _check_log2data()
+
+def _check_log2data():
+  v = None
+  with h5py.File('data/tri_walabot.h5','r') as hf:
+    v = np.array(hf['valData'])
+  print v.shape
+  print v.max()
+  print v.min()
 
 def convert():
   convert_img2label()
@@ -290,6 +321,9 @@ def load():
 if __name__=='__main__':
   pass
   findThres('data')
-  #convert()
+  #convert_img2label()
+  #convert_log2data()
+  #_check_log2data()
+  convert()
   #trainData,trainLabel,valData,valLabel = load()
   #trainData,trainLabel,valData,valLabel,testData,testLabel = load()
