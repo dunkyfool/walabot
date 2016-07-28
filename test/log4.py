@@ -43,8 +43,8 @@ def imgProcess(tmp_img,bk_img,thr,cls,x,y,z,ver,opt=False):
     if not opt: # build label
         #print res_img.shape
         #print cls.shape
-        app_img = np.append(res_img,cls) # append other info
-        app_img = np.append(app_img,[x,y,z,ver])
+        app_img = np.append(res_img,[x,y,z,ver])
+        app_img = np.append(app_img,cls) # append other info
         return app_img.reshape(1,128*128+cls.shape[0]+3+1)
 
     else:
@@ -155,9 +155,9 @@ def convert_img2label():
   # load fine-tunning threshold
   with h5py.File('data/thre.h5','r') as hf:
     thres = np.array(hf['threshold'])
-  clsList = []
 
   # search class num & build matrix
+  clsList = []
   for d in paths:
     name, x, y, z, ver = d.split('/')[-1].split('_')
     if name not in clsList: clsList += [name]
@@ -172,6 +172,22 @@ def convert_img2label():
       hf.create_dataset('trainLabel',(0,0),compression='gzip',maxshape=(None,None))
       hf.create_dataset('valLabel',(0,0),compression='gzip',maxshape=(None,None))
 
+  ##################
+  # Create padding #
+  ##################
+  app_flag = None
+  with h5py.File('data/tri_walabot.h5','r') as hf:
+    app_flag = hf['valLabel'].shape[1]
+
+  ## check valLabel.shape[1] > 0
+  ## create padding 
+  ## new padding = zeros old class + new class (old_class)
+  new_pad,new_cls,old_cls = None,None,None
+  if app_flag > 0:
+    new_cls = len(clsList)
+    old_cls = app_flag - 128*128 -3 -1
+    new_pad = np.zeros(old_cls)
+
   ###############
   # Build Label #
   ###############
@@ -184,12 +200,20 @@ def convert_img2label():
     name,x,y,z,ver = path.split('/')[-1].split('_')
     filename = sorted([f for f in listdir(path) if isfile(join(path,f))])
 
+    mask = None
     for pic in filename:
+      ## check valLabel.shape[1] > 0
+      ## new padding + cls
+      if app_flag > 0:
+        mask = np.append(new_pad,cls[clsList.index(name)])
+      else:
+        mask = cls[clsList.index(name)]
+
       labels += [imgProcess(cv2.imread(join(path,pic),0),
                             cv2.imread('data/background.jpg',0),thres[idx],
-                            cls[clsList.index(name)],int(x),int(y),int(z),int(ver[1:]))]
+                            mask,int(x),int(y),int(z),int(ver[1:]))]
 
-    labels = np.array(labels).reshape((-1,128*128+len(clsList)+3+1))
+    labels = np.array(labels).reshape((-1,128*128+mask.size+3+1))
 
     # save to hdf5 dataset
     with h5py.File('data/tri_walabot.h5', 'a') as hf:
@@ -205,18 +229,8 @@ def convert_img2label():
       hf['trainLabel'].resize((trainShape))
       hf['valLabel'].resize((valShape))
 
-      #print hf['trainLabel'][trainCurrSize:trainCurrSize+trainNum].shape
-      #print labels[0:trainNum].shape
-      #raw_input('PAUSE')
-
-      #print cls[0].shape
-      #print labels
-      #print labels[0,128*128:128*128+4]
-      #print type(labels[0,0]),type(labels[0,128*128]),type(labels[0,128*128+1]),type(labels[0,128*128+3]),type(labels[0,128*128+4])
-      #raw_input('PAUSE')
-
       hf['trainLabel'][trainCurrSize:trainCurrSize+trainNum,:] = labels[0:trainNum]
-      hf['valLabel'][valCurrSize:valCurrSize+valNum] = labels[trainNum:]
+      hf['valLabel'][valCurrSize:valCurrSize+valNum,:] = labels[trainNum:]
 
     del labels
 
