@@ -23,6 +23,12 @@ using namespace std;
 #define PI 3.14159265
 #define PAUSE printf("Press Enter key to continue..."); fgetc(stdin);
 
+string _name = "plastic_100_40_0_v1";
+string path = "data/"+_name+"/";
+string _path = "data/";
+string _logname = "data/"+_name+".log";
+const char *logname = _logname.c_str();
+
 void PrintSensorTargets(SensorTarget* targets, int numTargets)
 {
 	int targetIdx;
@@ -168,6 +174,57 @@ void showXY(int* rasterImage2, double maxInCm, double minInCm, double resICm, do
         */
 }
 
+void saveSignal(int *ctr)
+{
+    // Get all pair
+	WALABOT_RESULT res;
+	AntennaPair * antennaPairs;
+	int numPairs;
+	res = Walabot_GetAntennaPairs(&antennaPairs, &numPairs);
+	assert(res == WALABOT_SUCCESS);
+
+    // file name
+	for (int i=0;i<numPairs;i++)
+	{
+	  int tx = (*(antennaPairs+i)).txAntenna;
+	  int rx =  (*(antennaPairs+i)).rxAntenna;
+
+      if (tx ==1)
+      {
+        double* signal;
+        double* timeAxis;
+        int 	numSamples;
+        res = Walabot_GetSignal(tx,rx,&signal,&timeAxis,&numSamples);
+        assert(res == WALABOT_SUCCESS);
+
+        stringstream buff;
+        string pair;
+        buff << "antenna/" << tx << "_" << rx << ".txt";
+        buff >> pair;
+        buff.clear();
+        const char *pairName = pair.c_str();
+
+
+        fstream fp;
+        fp.open (pairName,ios::out|ios::trunc);
+        fp.close();
+        fp.open (pairName,ios::out|ios::app);
+
+        // save 2048 signal (abs)
+	    for (int j=0;j<2048;j++)
+        {
+	      fp << *(timeAxis+j) << " " << abs(*(signal+j)) << "\n";
+        }
+
+        fp.close();
+      }
+	}
+
+    // relax
+    //sleep(1);
+    *ctr = *ctr + 1;
+}
+
 void showSignal()
 {
 	WALABOT_RESULT res;
@@ -180,10 +237,10 @@ void showSignal()
 	//cout << "type of antennaPairs: "<< typeid(*(antennaPairs+1)).name() <<endl;
 	//cout << "txAntenna: "<< (*(antennaPairs+1)).txAntenna<<endl;
 	//cout << "rxAntenna: "<< (*(antennaPairs+1)).rxAntenna<<endl;
-	//cout << "txAntenna: "<< typeid(*antennaPairs.txAntenna).name()<<endl;
+	//cout << "txAntenna: "<< typeid((*(antennaPairs)).txAntenna).name()<<endl;
 	//cout << "rxAntenna: "<< typeid(*antennaPairs.rxAntenna).name()<<endl;
 
-	/*
+	///*
 	for (int i=0;i<numPairs;i++)
 	{
 	  cout << "Pair-" << i+1 << ":" <<endl;
@@ -191,7 +248,8 @@ void showSignal()
 	  cout << "rxAntenna: "<< (*(antennaPairs+i)).rxAntenna<<endl;
 	}
 	cout<<endl;
-	*/
+	//*/
+    PAUSE;
 
 	/*
 	int zz = 0;
@@ -239,12 +297,15 @@ void showSignal()
     */
 	//cout << "numSamples: " << numSamples <<endl;
 	///*
+	double sum = 0;
 	for (int i=0;i<numSamples;i++)
 	{
-	  cout << "index: " << i+1 <<endl;
-	  cout << "signal: " << *(signal+i) <<endl;
-	  cout << "timeAxis: " << *(timeAxis+i) <<endl;
+	  sum += abs(*(signal+i));
+	  //cout << "index: " << i+1 <<endl;
+	  //cout << "signal: " << *(signal+i) <<endl;
+	  //cout << "timeAxis: " << *(timeAxis+i) <<endl;
 	}
+	cout << "SUM: " << sum<<endl;
     //*/
     //PAUSE
 }
@@ -326,7 +387,7 @@ void log(Mat *frame)
     double y;
 	int 	numSamples;
     fstream fp;
-    fp.open ("data/walabot.log",ios::out|ios::app);
+    fp.open (logname,ios::out|ios::app);
 	for (int i=0;i<numPairs;i++)
 	{
 	  //cout << "Pair-" << i+1 << ":" <<endl;
@@ -512,10 +573,14 @@ void SensorCode_SampleCode()
     // default webcam
     VideoCapture cap(0);
     //image folder path
-    string path = "data/001/";
+    //string path = "data/clay_100_40_0/";
     stringstream serialNum;
     string fullPath;
 	int num = 0;
+    int ctr = 0;
+    //cout << "Clean the scean and press R to caliberate!!"<<endl;
+    //res = Walabot_GetStatus(&appStatus, &calibrationProcess);
+    //assert(res == WALABOT_SUCCESS);
 	while (recording)
 	{
 		// calibrates scanning to ignore or reduce the signals
@@ -532,14 +597,14 @@ void SensorCode_SampleCode()
 
 		//	6) 	Get action : retrieve the last completed triggered recording 
 		//	================================================================
-		res = Walabot_GetSensorTargets(&targets, &numTargets);
-		assert(res == WALABOT_SUCCESS);
+		//res = Walabot_GetSensorTargets(&targets, &numTargets);
+		//assert(res == WALABOT_SUCCESS);
 		//cout << "11" << endl;
 
-		res = Walabot_GetRawImageSlice(&rasterImage, &sizeX, &sizeY, &sliceDepth, &power);
-		assert(res == WALABOT_SUCCESS);
-		res = Walabot_GetRawImage(&rasterImage2, &sizeX2, &sizeY2, &sizeZ2, &power2);
-		assert(res == WALABOT_SUCCESS);
+		//res = Walabot_GetRawImageSlice(&rasterImage, &sizeX, &sizeY, &sliceDepth, &power);
+		//assert(res == WALABOT_SUCCESS);
+		//res = Walabot_GetRawImage(&rasterImage2, &sizeX2, &sizeY2, &sizeZ2, &power2);
+		//assert(res == WALABOT_SUCCESS);
 		//cout << "12" << endl;
 
 		//	******************************
@@ -564,7 +629,7 @@ void SensorCode_SampleCode()
 		//cout << "type of sliceDepth: " << typeid(sliceDepth).name() <<endl;
 
         
-		showRTheta(rasterImage,sizeX,sizeY,width,height,&new_frame);
+		//showRTheta(rasterImage,sizeX,sizeY,width,height,&new_frame);
 		//showThetaPhi(rasterImage2,sizeX2,sizeY2,sizeZ2,width2,height2,&new_frame2);
 		//showXY(rasterImage2,maxInCm,minInCm,resICm,maxIndegrees,minIndegrees,resIndegrees,maxPhiInDegrees, minPhiInDegrees,resPhiInDegrees,sizeX2,sizeY2,sizeZ2,width2,height2,&new_frame3);
         //getCenter(&new_frame, 100);
@@ -572,14 +637,17 @@ void SensorCode_SampleCode()
 	    // print (17,2) Signal
         //showSignal();
 
+        saveSignal(&ctr);
+        if (ctr==10) break;
+
         // Webcam
-        Mat webcam_frame;
-        cap >> webcam_frame;
-	    namedWindow("SHOW99",1);
-	    imshow("SHOW99", webcam_frame);
+        //Mat webcam_frame;
+        //cap >> webcam_frame;
+	    //namedWindow("SHOW99",1);
+	    //imshow("SHOW99", webcam_frame);
 
 
-
+        /*
 		// KEYBOARD INTERRUPT
 		int key = cv::waitKey(30) & 255;
         
@@ -610,7 +678,7 @@ void SensorCode_SampleCode()
         if (key==97) // A save background image
         {
           cout << "save background image!!"<<endl;
-          string tmp = path + "background.jpg";
+          string tmp = _path + "background.jpg";
           imwrite(tmp,webcam_frame);
         }
 		if(key != 255) cout << key <<endl;
@@ -620,6 +688,7 @@ void SensorCode_SampleCode()
           //recordVideo(&video,&new_frame);//video.write(new_frame2);
           log(&new_frame);
           num++;
+          ctr++;
     	  //cout<<num<<endl;
           serialNum << path << setw(8) << setfill('0') << num << ".jpg";
           serialNum >> fullPath;
@@ -627,7 +696,9 @@ void SensorCode_SampleCode()
           //cout << fullPath;
           imwrite(fullPath,webcam_frame);
           //saveImage(&webcam_frame,num,path);
+          if (ctr==20) {mode = not mode; ctr=0; cout<<"DONE"<<endl;}
         }
+        */
 		//PrintSensorTargets(targets, numTargets);
 	}
 
@@ -648,6 +719,8 @@ void SensorCode_SampleCode()
 #ifndef _SAMPLE_CODE_
 int main()
 {
+    cout << "Start to capture information!!" << endl;
 	SensorCode_SampleCode();
+    cout << "Done" << endl;
 }
 #endif
