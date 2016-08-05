@@ -22,5 +22,6 @@
 #scp test/log4.py hduser@thz:/home/hduser/walabot/tool/
 #scp test/log5.py hduser@thz:/home/hduser/walabot/tool/
 scp test/log6.py hduser@thz:/home/hduser/walabot/tool/
+scp model/location.py hduser@thz:/home/hduser/walabot/model/
 #scp model/utils/layers.py hduser@thz:/home/hduser/walabot/model/utils/
 #scp test/plot.py hduser@thz:/home/hduser/walabot/tool/

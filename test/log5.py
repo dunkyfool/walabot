@@ -11,7 +11,7 @@ import sys,select
 ###################
 path = 'antenna'
 logName = '2D_location.h5'
-MODE = 'train'
+MODE = 'test'
 
 def timeout(string):
   print 'Skip in FIVE seconds',string
@@ -105,17 +105,17 @@ def load():
     with h5py.File(join(path,logName),'r') as hf:
         trainData = np.array(hf['trainData'])
         trainLabel = np.array(hf['trainLabel'])
-        #valData = np.array(hf['valData'])
-        #valLabel = np.array(hf['valLabel'])
-        #testData = np.array(hf['testData'])
-        #testLabel = np.array(hf['testLabel'])
+        valData = np.array(hf['valData'])
+        valLabel = np.array(hf['valLabel'])
+        testData = np.array(hf['testData'])
+        testLabel = np.array(hf['testLabel'])
 
     print 'trainData',trainData.shape
     print 'trainLabel',trainLabel.shape
-    #print 'valData',valData.shape
-    #print 'valLabel',valLabel.shape
-    #print 'testData',testData.shape
-    #print 'testLabel',testLabel.shape
+    print 'valData',valData.shape
+    print 'valLabel',valLabel.shape
+    print 'testData',testData.shape
+    print 'testLabel',testLabel.shape
     print 'laod time: ', (time.time()-start)
 
     print trainData.max(),trainData.min(),trainData.mean()
@@ -127,20 +127,20 @@ if __name__=='__main__':
   pass
 
   os.system("clear")
-  print "Create 2D_location.h5 dataset!!"
-  print "Current Mode [", MODE.upper(),"]"
-  depth = raw_input("Enter Depth(cm)[30-100]: ")
-  width = raw_input("Enter Width(cm)[ 0-40 ]: ")
+  #print "Create 2D_location.h5 dataset!!"
+  #print "Current Mode [", MODE.upper(),"]"
+  #depth = raw_input("Enter Depth(cm)[30-100]: ")
+  #width = raw_input("Enter Width(cm)[ 0-40 ]: ")
 
-  ###########################
-  # Initialize HDF5 dataset #
-  ###########################
-  if not isfile(join(path,logName)):
-    init(0)
+  ############################
+  ## Initialize HDF5 dataset #
+  ############################
+  #if not isfile(join(path,logName)):
+  #  init(0)
 
-  _ = timeout('Overwrite[y/N]: ')
-  if _ == 'y' or _ == 'Y':
-    init(MODE)
+  #_ = timeout('Overwrite[y/N]: ')
+  #if _ == 'y' or _ == 'Y':
+  #  init(MODE)
 
   with h5py.File(join(path,logName),'r') as hf:
     print '====== Status of Current Dataset ======'
@@ -148,11 +148,11 @@ if __name__=='__main__':
       print k.upper(),'\t',hf[k].shape
     print '\n'
 
-  # execute SensorSampleCode.cpp
-  cmd = './buildAll.sh'
-  os.system(cmd)
+  ## execute SensorSampleCode.cpp
+  #cmd = './buildAll.sh'
+  #os.system(cmd)
 
-  convert_log2data(MODE)
-  convert_label(MODE,int(depth),int(width))
+  #convert_log2data(MODE)
+  #convert_label(MODE,int(depth),int(width))
 
   #trainData,trainLabel,valData,valLabel,testData,testLabel = load()

@@ -353,5 +353,5 @@ def test():
   print min(net.X1_err_history)
 
 if __name__=='__main__':
-  test()
+  #test()
   pass
