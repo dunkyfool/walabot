@@ -236,9 +236,9 @@ def walabot_preprocess(data1,data2,data3):
   # 5. Swap back
 
   # 0
-  data1 -= data1[0]
-  data2 -= data1[0]
-  data3 -= data1[0]
+  data1 = np.abs(data1-data1[0])
+  data2 = np.abs(data2-data1[0])
+  data3 = np.abs(data3-data1[0])
 
   # 1,2
   data1 = np.swapaxes(data1,2,3)[:,:,:,200:]
@@ -286,7 +286,7 @@ if __name__=='__main__':
   start = time.time()
 #  quick_scan_plot()
   quick_scan(trainData,trainLabel,
-             valData,valLabel,e,lr_range=[-1,-2],reg_range=[-20,-20],epoch=10,sample=1)
+             valData,valLabel,e,lr_range=[-2.4,-3.4],reg_range=[-2,-3],epoch=20,sample=1)
 #  marathon(trainData,trainLabel,valData,valLabel,testData,testLabel,e,
 #           lr=0.0000100092895533, reg=0.00211463464795, epoch=1200)
 #  review(testData,testLabel,valData,valLabel,e)
