@@ -53,7 +53,7 @@ class modelX():
     # regularizer: L2 loss
 
     # Input & label
-    self.x = tf.placeholder(tf.float32,[None,1,2048,13])
+    self.x = tf.placeholder(tf.float32,[None,1,88,13])
     self.y_hat = tf.placeholder(tf.float32,[None, 2])
 
     # CNN-1
@@ -113,23 +113,23 @@ class modelX():
     self.bnv4 = beta([13])
 
     # FC-1
-    self.w1 = weight([256*13,2048])
-    self.b1 = bias([2048])
-    self.bng5 = gamma([2048])
-    self.bnb5 = beta([2048])
-    self.bnm5 = beta([2048])
-    self.bnv5 = beta([2048])
+    self.w1 = weight([11*13,576])
+    self.b1 = bias([576])
+    self.bng5 = gamma([576])
+    self.bnb5 = beta([576])
+    self.bnm5 = beta([576])
+    self.bnv5 = beta([576])
 
     # FC-2
-    self.w2 = weight([2048,2048])
-    self.b2 = bias([2048])
-    self.bng6 = gamma([2048])
-    self.bnb6 = beta([2048])
-    self.bnm6 = beta([2048])
-    self.bnv6 = beta([2048])
+    self.w2 = weight([576,576])
+    self.b2 = bias([576])
+    self.bng6 = gamma([576])
+    self.bnb6 = beta([576])
+    self.bnm6 = beta([576])
+    self.bnv6 = beta([576])
 
     # FC-3
-    self.w3 = weight([2048,2])
+    self.w3 = weight([576,2])
     self.b3 = bias([2])
     self.conv_para = {'stride':1,
                      'pad':'SAME'}
@@ -155,7 +155,7 @@ class modelX():
     self.cnn3 = cnn1d_relu_bn(self._cnn3,self.half_f3,self.half_fb3,self.conv_para2,self.half_bng3,self.half_bnb3,self.half_bnm3,self.half_bnv3)
     self.cnn4 = cnn1d_relu_bn(self.cnn3,self.f4,self.fb4,self.conv_para,self.bng4,self.bnb4,self.bnm4,self.bnv4)
     # flatten last cnn layer's output
-    self.cnn4_output = tf.reshape(self.cnn4,[-1,256*13])
+    self.cnn4_output = tf.reshape(self.cnn4,[-1,11*13])
     #self.dnn1 = dnn_relu(self.cnn4_output,self.w1,self.b1)
     #self.dnn2 = dnn_relu(self.dnn1,self.w2,self.b2)
     self.dnn1 = dnn_relu_bn(self.cnn4_output,self.w1,self.b1,self.bng5,self.bnb5,self.bnm5,self.bnv5)
@@ -321,12 +321,12 @@ class modelX():
     # Test #
     ########
     elif mode=='test':
-      saver.restore(sess, "last_model.ckpt")
+      saver.restore(sess, "model.ckpt")
       print("Model restored.")
-      loss,accuracy,error,org_output = sess.run([cross_entropy,acc,err,self.dnn3],feed_dict={self.x:X1,self.y_hat:y1})
-      print("Vali Loss %.10f Accuracy %.10f Error %.10f" %(loss,accuracy,error))
-      loss1,accuracy1,error1,org_output1 = sess.run([cross_entropy,acc,err,self.dnn3],feed_dict={self.x:X,self.y_hat:y})
-      print("Test Loss %.10f Accuracy %.10f Error %.10f" %(loss1,accuracy1,error1))
+      loss,error,org_output = sess.run([cross_entropy,err,self.dnn3],feed_dict={self.x:X1,self.y_hat:y1})
+      print("Vali Loss %.10f Error %.10f" %(loss,error))
+      loss1,error1,org_output1 = sess.run([cross_entropy,err,self.dnn3],feed_dict={self.x:X,self.y_hat:y})
+      print("Test Loss %.10f Error %.10f" %(loss1,error1))
       return org_output, org_output1
 
     #sess.close()
