@@ -16,6 +16,6 @@
 #scp hduser@thz:/home/hduser/walabot/tool/plot.py test/
 #scp hduser@thz:/home/hduser/walabot/log3.py test/
 #scp hduser@thz:/home/hduser/walabot/tool/log4.py test/
-scp hduser@thz:/home/hduser/walabot/tool/log5.py test/
-scp hduser@thz:/home/hduser/walabot/model/location.py model/
+#scp hduser@thz:/home/hduser/walabot/tool/log5.py test/
+#scp hduser@thz:/home/hduser/walabot/model/location.py model/
 scp hduser@thz:/home/hduser/walabot/main_location.py .
