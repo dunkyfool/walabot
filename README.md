@@ -24,6 +24,8 @@ Detect the distance of the target.
 * Walabot SDK ([Link](http://www.walabot.com/getting-started))
 
 ## Before you start
+This project is just for entertaiment and there are several models for different purpose, such as material classification & display silhouette of target. The effect can not be guaranteed and it is not recommended to the tensorflow beginner to use it. The most important thing is *"HAVING FUN!"*.
+
 ## How to build up training/validation/test data?
 ## How to visualise data?
 ## How to train the network?
