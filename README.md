@@ -13,7 +13,7 @@ Detect the distance of the target.
 ## Requirement
 ### Hardware
 * Normal PC or laptop
-* Walabot Device([Link](http://walabot.com/))
+* Walabot Device ([Link](http://walabot.com/))
 
 ### Software
 * OS: Ubuntu 14.04
@@ -21,6 +21,7 @@ Detect the distance of the target.
 * Opencv 3.0.0
 * H5PY
 * Matplotlib
+* Walabot SDK ([Link](http://www.walabot.com/getting-started))
 
 ## Before you start
 ## How to build up training/validation/test data?
