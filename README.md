@@ -34,6 +34,8 @@ This project is just for entertaiment and there are several models for different
 
 ## How to visualise data?
 
+1. Use tool/showAntenna.py
 
 ## How to train the network?
 
+1. Execute main_location.py.
