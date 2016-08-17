@@ -7,7 +7,7 @@
 Compose minibatch from training set by randomly selecting.
 
 ## class model X
-### init
+### init()
 #### Define
 1. input shape
 2. output shape
@@ -16,7 +16,7 @@ Compose minibatch from training set by randomly selecting.
 5. L2 regularization
 6. connection of each layer
 
-### loss
+### loss()
 #### Train MODE
 #### Define
 1. list of lose & accuracy history
