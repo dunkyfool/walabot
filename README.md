@@ -14,6 +14,7 @@ Detect the distance of the target.
 ### Hardware
 * Normal PC
 * Walabot Device([Link](http://walabot.com/))
+
 ### Software
 
 ## Before you start
