@@ -1,1 +1,1 @@
-**PLEASE READ ME FIRST !!! Orz**
+**PLEASE READ ME FIRST !!!** :smile:
