@@ -8,7 +8,7 @@ Compose minibatch from training set by randomly selecting.
 
 ## class model X
 ### init
-Define
+#### Define
 1. input shape
 2. output shape
 3. label shape
@@ -18,7 +18,7 @@ Define
 
 ### loss
 #### Train MODE
-Define
+#### Define
 1. list of lose & accuracy history
 2. loss function
 3. technique of learning rate(GDS,Momentum,RMSProp,Adam)
