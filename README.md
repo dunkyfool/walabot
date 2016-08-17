@@ -12,10 +12,15 @@ Detect the distance of the target.
 
 ## Requirement
 ### Hardware
-* Normal PC
+* Normal PC or laptop
 * Walabot Device([Link](http://walabot.com/))
 
 ### Software
+* OS: Ubuntu 14.04
+* Tensorflow 0.8.0
+* Opencv 3.0.0
+* H5PY
+* Matplotlib
 
 ## Before you start
 ## How to build up training/validation/test data?
