@@ -31,9 +31,9 @@ This project is just for entertaiment and there are several models for different
 1. Execute buildAll.sh. It logs antenna's signal(tx==1) at antenna folder.The log name format is tx-rx.txt.
 
 2. Execute test/log5.py to create training/validation/test data. Please uncomment line 130-156 and change MODE at line 14. 
-* training set:   MODE='train'
-* validation set: MODE='val'
-* test set:       MODE='test'
+- training set:   MODE='train'
+- validation set: MODE='val'
+- test set:       MODE='test'
 
 ## How to visualise data?
 
