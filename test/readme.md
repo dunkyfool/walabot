@@ -4,9 +4,9 @@
 * init()
 * convert_log2data()
 * convert_label()
-* __main__
+* main
 
-1. Do not forget to change the MODE @line-14 (training:MODE='train',valadation:MODE='val',test:MODE='test')
+1. Do not forget to change the MODE @line-14 (training:MODE='train', valadation:MODE='val', test:MODE='test')
 2. Please uncomment from line 130 to line 156
 
 ## timeout() 
@@ -21,7 +21,7 @@ Convert the raw signal into data.
 ## convert_label()
 Convert the keyword into label.
 
-## __main__
+## main
 1. Manually key in the label.(current value is distance of the target)
 2. Initial the dataset.
 3. Overwrite the dataset or not
