@@ -19,5 +19,5 @@
 #### This is the prototype to use average pooling on every 21 time samples and output the averaged value.
 
 ## show_diff()
-
+#### The purpose of this function is to list all mean/sum of signal in order to find out whether the variety of the signal changes with different location. 
 
